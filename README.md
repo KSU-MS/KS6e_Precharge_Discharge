@@ -25,6 +25,9 @@ utlizes four states
         airs are open
         precharge is open
 
+![Alt text](Documentation/state-flow-chart.png "Optional title")
+![Alt text](Documentation/timing-diagram.png "Optional title")
+
 ## imputs
     the preharge responds only to the voltage on the SDC, Voltage on the tractive system, and Voltage on the Accumulator bus.
 
