@@ -89,6 +89,8 @@ void updateStatusLeds();
 void statusLEDsOff();
 void canBroadcastStatus();
 void readBroadcast();
+
+// Main Loop
 void loop() {
   now = millis();
 
