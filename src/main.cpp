@@ -40,7 +40,11 @@
 #define NUM_RX_MAILBOXES 6
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> CAN;
 Metro CanBroadcastTimer = Metro(50);
+
+// Edit to set Minum sutdown voltage bus
 const float MIN_SDC_VOLTAGE = 9.0; // [Volts]
+
+
 volatile bool vcuSignal=false;
 // Exponential Moving Average Filters
 MovingAverage TSV_Average(0, 0.1); // Tractive system Voltage
@@ -89,6 +93,8 @@ void updateStatusLeds();
 void statusLEDsOff();
 void canBroadcastStatus();
 void readBroadcast();
+
+// Main Loop
 void loop() {
   now = millis();
 
