@@ -27,8 +27,8 @@ const int CONFIG_PIN[] = {4,5,6};
 const int STATUS_LED[] = {0,1,2,3};
 
 // Relays
-const int SHUTDOWN_CTRL_PIN = 13;
-const int PRECHARGE_CTRL_PIN = 19;
+const int SHUTDOWN_CTRL_PIN = 20;
+const int PRECHARGE_CTRL_PIN = 26;
 
 // Frequency measurements (from Voltage-to-Frequency converters)
 const int FREQ_ACCU_PIN = 14;
