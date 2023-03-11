@@ -11,17 +11,19 @@
 #include "gpio.h"
 
 // Accumulator V-F converter - Schematic REF : U8
-const double V2F_slope_accu = 70.852;   // Gradient constant
-const double V2F_ofs_accu = 3.2865;     // offset / y-intercept consant
+const double V2F_slope_accu = 556.19;   // Gradient constant
+const double V2F_ofs_accu = -6.2818;     // offset / y-intercept consant
 
 // Tractive System V-F converter - Schematic REF: U7
-const double V2F_slope_ts = 72.361;     // Gradient constant
-const double V2F_ofs_ts = 4.0313;      // offset / y-intercept consant
+const double V2F_slope_ts = 557.22;     // Gradient constant
+const double V2F_ofs_ts = -8.7202;      // offset / y-intercept consant
 
 // Voltage dividers upstream of V-F converters:
 // R31+R32+R36+R37 = 2.55M, R39 = 39k, Rtotal = 2.55M+39k
 // gain = R39/(Rtotal)
-const double gainVoltageDivider = 0.025974026;
+// Our values:
+// 66500/(2550000+66500)
+const double gainVoltageDivider = 0.02541563156;
 
 const float MIN_VOLTAGE_THRESHOLD = 5.0;  // Clip voltages below this level
 const int MAX_FREQ_ATTEMPTS = 10;         // Attempts at measuring frequency before accepting an out-of-bounds result
