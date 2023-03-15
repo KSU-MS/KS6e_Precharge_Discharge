@@ -35,8 +35,8 @@ const int FREQ_ACCU_PIN = 14;
 const int FREQ_TS_PIN = 15;
 
 // Status inputs
-const int PDOC_PIN = A7; // Active-high when PDOC is OK
-const int PWR_OK_PIN = A4; // Active-high when power-supply (shutdown circuit) is OK
+const int PDOC_PIN = A7; // pin 21 Active-high when PDOC is OK
+const int PWR_OK_PIN = A4; // pin 18 Active-high when power-supply (shutdown circuit) is OK
 
 // Function prototypes
 void setupGPIO(void);
