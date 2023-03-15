@@ -40,6 +40,7 @@
 #define NUM_RX_MAILBOXES 6
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> CAN;
 Metro CanBroadcastTimer = Metro(50);
+  
 
 // Edit to set Minum sutdown voltage bus
 const float MIN_SDC_VOLTAGE = 9.0; // [Volts]
@@ -81,6 +82,7 @@ void setup() {
   CAN.setMBFilter(MB1,ACCEPT_ALL);
   CAN.setMBFilter(MB2,ACCEPT_ALL);
     CAN.mailboxStatus();
+pinMode(LED_BUILTIN, OUTPUT); //added for heart beat
 
 }
 
@@ -103,6 +105,9 @@ void loop() {
   if(CanBroadcastTimer.check()==1){
   canBroadcastStatus();
   }
+
+  digitalWrite(LED_BUILTIN, HIGH);
+
   // The State Machine
   switch(state){
     case STATE_STANDBY :
