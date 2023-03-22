@@ -50,6 +50,8 @@ MovingAverage TSV_Average(0, 0.1); // Tractive system Voltage
 MovingAverage ACV_Average(0, 0.1); // Accumulator (upstream of precharge resistor)
 MovingAverage SDC_Average(0, 0.5); // Shutdown Circuit
 
+// STATEVAR state = STATE_STANDBY;
+// STATEVAR lastState = STATE_UNDEFINED;
 STATEVAR state = STATE_STANDBY;
 STATEVAR lastState = STATE_UNDEFINED;
 int errorCode = ERR_NONE;
@@ -107,14 +109,16 @@ void loop()
   {
     canBroadcastStatus();
   }
-
+  //SDC_Average
+  Serial.println(getShutdownCircuitVoltage());
   digitalWrite(LED_BUILTIN, HIGH);
-
+  //Serial.println(F("I am AliveEEEE"));
   // The State Machine
   switch (state)
   {
   case STATE_STANDBY:
     standby();
+        //Serial.println(F("I am in sate standyby"));
     break;
 
   case STATE_PRECHARGE:
@@ -161,7 +165,9 @@ void standby()
   {
     lastState = STATE_STANDBY;
     statusLEDsOff();
+    //delay(500);
     statusLED[0].on();
+    digitalWrite(LED_BUILTIN, LOW);
     Serial.println(F(" === STANDBY"));
     Serial.println(F("* Waiting for stable shutdown circuit"));
     epoch = millis(); // make sure to reset if we've circled back to standby
@@ -175,6 +181,7 @@ void standby()
   // Disable AIR, Disable Precharge
   digitalWrite(PRECHARGE_CTRL_PIN, LOW);
   digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
+  //Serial.println("going through");
 
   // Check for stable shutdown circuit
   const unsigned int WAIT_TIME = 100; // ms to wait for stable voltage
