@@ -26,7 +26,7 @@
       attempting a precharge.
 */
 #include <Arduino.h>
-#include <FlexCAN_T4.h> //how can we make use of CAN here? maybe broadcast fault 
+#include <FlexCAN_T4.h> //how can we make use of CAN here? maybe broadcast fault
 #include "gpio.h"
 #include "measurements.h"
 #include "moving-average.h"
@@ -40,13 +40,11 @@
 #define NUM_RX_MAILBOXES 6
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> CAN;
 Metro CanBroadcastTimer = Metro(50);
-  
 
 // Edit to set Minum sutdown voltage bus
 const float MIN_SDC_VOLTAGE = 9.0; // [Volts]
 
-
-volatile bool vcuSignal=false;
+volatile bool vcuSignal = false;
 // Exponential Moving Average Filters
 MovingAverage TSV_Average(0, 0.1); // Tractive system Voltage
 MovingAverage ACV_Average(0, 0.1); // Accumulator (upstream of precharge resistor)
@@ -56,34 +54,36 @@ STATEVAR state = STATE_STANDBY;
 STATEVAR lastState = STATE_UNDEFINED;
 int errorCode = ERR_NONE;
 
-StatusLight statusLED[4] {{ STATUS_LED[0] },
-                          { STATUS_LED[1] },
-                          { STATUS_LED[2] },
-                          { STATUS_LED[3] }};
+StatusLight statusLED[4]{{STATUS_LED[0]},
+                         {STATUS_LED[1]},
+                         {STATUS_LED[2]},
+                         {STATUS_LED[3]}};
 
 char lineBuffer[50];
 unsigned long now; // Uptime from millis()
 
-void setup() {
+void setup()
+{
   // Serial.begin(460800);
   setupGPIO();
-  //while(!Serial);  // TODO: remove during commissioning
-    CAN.begin();
-    CAN.setBaudRate(500000);
-    CAN.setMaxMB(NUM_TX_MAILBOXES+NUM_RX_MAILBOXES);
-    for (int i = 0; i<NUM_RX_MAILBOXES; i++){
-    CAN.setMB((FLEXCAN_MAILBOX)i,RX,STD);
+  // while(!Serial);  // TODO: remove during commissioning
+  CAN.begin();
+  CAN.setBaudRate(500000);
+  CAN.setMaxMB(NUM_TX_MAILBOXES + NUM_RX_MAILBOXES);
+  for (int i = 0; i < NUM_RX_MAILBOXES; i++)
+  {
+    CAN.setMB((FLEXCAN_MAILBOX)i, RX, STD);
   }
-  for (int i = NUM_RX_MAILBOXES; i<(NUM_TX_MAILBOXES + NUM_RX_MAILBOXES); i++){
-    CAN.setMB((FLEXCAN_MAILBOX)i,TX,STD);
+  for (int i = NUM_RX_MAILBOXES; i < (NUM_TX_MAILBOXES + NUM_RX_MAILBOXES); i++)
+  {
+    CAN.setMB((FLEXCAN_MAILBOX)i, TX, STD);
   }
   CAN.setMBFilter(REJECT_ALL);
-  CAN.setMBFilter(MB0,0x1A4);
-  CAN.setMBFilter(MB1,ACCEPT_ALL);
-  CAN.setMBFilter(MB2,ACCEPT_ALL);
-    CAN.mailboxStatus();
-pinMode(LED_BUILTIN, OUTPUT); //added for heart beat
-
+  CAN.setMBFilter(MB0, 0x1A4);
+  CAN.setMBFilter(MB1, ACCEPT_ALL);
+  CAN.setMBFilter(MB2, ACCEPT_ALL);
+  CAN.mailboxStatus();
+  pinMode(LED_BUILTIN, OUTPUT); // added for heart beat
 }
 
 void monitorShutdownCircuit();
@@ -97,62 +97,68 @@ void canBroadcastStatus();
 void readBroadcast();
 
 // Main Loop
-void loop() {
+void loop()
+{
   now = millis();
 
   // Always monitor Shutdown Circuit Voltage and react
   monitorShutdownCircuit();
-  if(CanBroadcastTimer.check()==1){
-  canBroadcastStatus();
+  if (CanBroadcastTimer.check() == 1)
+  {
+    canBroadcastStatus();
   }
 
   digitalWrite(LED_BUILTIN, HIGH);
 
   // The State Machine
-  switch(state){
-    case STATE_STANDBY :
-      standby();
-      break;
+  switch (state)
+  {
+  case STATE_STANDBY:
+    standby();
+    break;
 
-    case STATE_PRECHARGE :
-      precharge();
-      break;
+  case STATE_PRECHARGE:
+    precharge();
+    break;
 
-    case STATE_ONLINE :
-      running();
-      break;
+  case STATE_ONLINE:
+    running();
+    break;
 
+  case STATE_ERROR:
+    errorState();
 
-    case STATE_ERROR :
-      errorState();
-
-    default : // You tried to enter a state not defined in this switch-case
-      state = STATE_ERROR;
-      errorCode |= ERR_STATE_UNDEFINED;
-      errorState();
+  default: // You tried to enter a state not defined in this switch-case
+    state = STATE_ERROR;
+    errorCode |= ERR_STATE_UNDEFINED;
+    errorState();
   }
 
   updateStatusLeds();
   readBroadcast();
-
 }
 
-void monitorShutdownCircuit() {
+void monitorShutdownCircuit()
+{
   static unsigned long lastSample = 0;
-  if (now > lastSample + 10) {
+  if (now > lastSample + 10)
+  {
     lastSample = now;
     SDC_Average.update(getShutdownCircuitVoltage());
   }
   // Error state should be deadlocked - no way out.
-  if ( SDC_Average.value() < MIN_SDC_VOLTAGE && state != STATE_ERROR) {
+  if (SDC_Average.value() < MIN_SDC_VOLTAGE && state != STATE_ERROR)
+  {
     state = STATE_STANDBY;
   }
 }
 
 // Open AIRs, Open Precharge, indicate status, wait for stable shutdown circuit
-void standby() {
+void standby()
+{
   static unsigned long epoch;
-  if (lastState != STATE_STANDBY) {
+  if (lastState != STATE_STANDBY)
+  {
     lastState = STATE_STANDBY;
     statusLEDsOff();
     statusLED[0].on();
@@ -172,32 +178,37 @@ void standby() {
 
   // Check for stable shutdown circuit
   const unsigned int WAIT_TIME = 100; // ms to wait for stable voltage
-  if ((SDC_Average.value() >= MIN_SDC_VOLTAGE)/* && vcuSignal*/){
-    if (millis() > epoch + WAIT_TIME){
+  if ((SDC_Average.value() >= MIN_SDC_VOLTAGE) /* && vcuSignal*/)
+  {
+    if (millis() > epoch + WAIT_TIME)
+    {
       state = STATE_PRECHARGE;
-      vcuSignal=false;
+      vcuSignal = false;
     }
-  } else {
+  }
+  else
+  {
     epoch = millis(); // reset timer
   }
-
 }
 
 // Close the precharge relay, monitor precharge voltage.
 // Trip error if charge-time looks unusual
-void precharge() {
+void precharge()
+{
   // Look for "too fast" or "too slow" precharge, indicates wiring fault
-  const float MIN_EXPECTED = 300; // [ms]. Set this to something reasonable after collecting normal precharge sequence data
+  const float MIN_EXPECTED = 300;  // [ms]. Set this to something reasonable after collecting normal precharge sequence data
   const float MAX_EXPECTED = 1000; // [ms]. Set this to something reasonable after collecting normal precharge sequence data
   // If a precharge is detected faster than this, an error is
   // thrown - assumed wiring fault. This could also arrest oscillating or
   // chattering AIRs, because the TS will retain some amount of precharge.
-  const float TARGET_PERCENT = 92;   // TODO: Requires suitable value during commissioning (eg 95%)
+  const float TARGET_PERCENT = 92;        // TODO: Requires suitable value during commissioning (eg 95%)
   const unsigned int SETTLING_TIME = 100; // [ms] Precharge amount must be over TARGET_PERCENT for this long before we consider precharge complete
   static unsigned long epoch;
   static unsigned long tStartPre;
 
-  if (lastState != STATE_PRECHARGE){
+  if (lastState != STATE_PRECHARGE)
+  {
     digitalWrite(PRECHARGE_CTRL_PIN, HIGH);
     lastState = STATE_PRECHARGE;
     statusLEDsOff();
@@ -211,7 +222,8 @@ void precharge() {
   // Sample the voltages and update moving averages
   const unsigned long samplePeriod = 10; // [ms] Period to measure voltages
   static unsigned long lastSample = 0;
-  if (now > lastSample + samplePeriod){  // samplePeriod and movingAverage alpha value will affect moving average response.
+  if (now > lastSample + samplePeriod)
+  { // samplePeriod and movingAverage alpha value will affect moving average response.
     lastSample = now;
     ACV_Average.update(getAccuVoltage());
     TSV_Average.update(getTsVoltage());
@@ -224,43 +236,48 @@ void precharge() {
 
   // Print Precharging progress
   static unsigned long lastPrint = 0;
-  if (now >= lastPrint + 100) {
+  if (now >= lastPrint + 100)
+  {
     lastPrint = now;
-    sprintf(lineBuffer, "%5lums %4.1f%%  ACV:%5.1fV TSV:%5.1fV\n", now-tStartPre, prechargeProgress, ACV_Average.value(),TSV_Average.value());
+    sprintf(lineBuffer, "%5lums %4.1f%%  ACV:%5.1fV TSV:%5.1fV\n", now - tStartPre, prechargeProgress, ACV_Average.value(), TSV_Average.value());
     Serial.print(lineBuffer);
   }
 
   // Check if precharge complete
-  if ( prechargeProgress >= TARGET_PERCENT ) {
+  if (prechargeProgress >= TARGET_PERCENT)
+  {
     // Precharge complete
-    if (now > epoch + SETTLING_TIME){
+    if (now > epoch + SETTLING_TIME)
+    {
       state = STATE_ONLINE;
       sprintf(lineBuffer, "* Precharge complete at: %2.0f%%   %5.1fV\n", prechargeProgress, TSV_Average.value());
       Serial.print(lineBuffer);
     }
-    else if (now < tStartPre + MIN_EXPECTED && now > epoch + SETTLING_TIME) {    // Precharge too fast - something's wrong!
+    else if (now < tStartPre + MIN_EXPECTED && now > epoch + SETTLING_TIME)
+    { // Precharge too fast - something's wrong!
       state = STATE_ERROR;
       errorCode |= ERR_PRECHARGE_TOO_FAST;
     }
-
-  } else {
+  }
+  else
+  {
     // Precharging
     epoch = now;
 
-    if (now > tStartPre + MAX_EXPECTED) {       // Precharge too slow - something's wrong!
+    if (now > tStartPre + MAX_EXPECTED)
+    { // Precharge too slow - something's wrong!
       state = STATE_ERROR;
       errorCode |= ERR_PRECHARGE_TOO_SLOW;
     }
   }
-
-
-
 }
 
-void running() {
+void running()
+{
   const unsigned int T_OVERLAP = 500; // ms. Time to overlap the switching of AIR and Precharge
   static unsigned long epoch;
-  if (lastState != STATE_ONLINE){
+  if (lastState != STATE_ONLINE)
+  {
     statusLEDsOff();
     statusLED[2].on();
     Serial.println(F(" === RUNNING"));
@@ -269,69 +286,83 @@ void running() {
   }
 
   digitalWrite(SHUTDOWN_CTRL_PIN, HIGH);
-  if (now > epoch + T_OVERLAP) digitalWrite(PRECHARGE_CTRL_PIN, LOW);
-
+  if (now > epoch + T_OVERLAP)
+    digitalWrite(PRECHARGE_CTRL_PIN, LOW);
 }
 
-void errorState() {
+void errorState()
+{
   digitalWrite(PRECHARGE_CTRL_PIN, LOW);
   digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
 
-  if (lastState != STATE_ERROR){
+  if (lastState != STATE_ERROR)
+  {
     lastState = STATE_ERROR;
     statusLEDsOff();
-    statusLED[3].update(50,50); // Strobe STS LED
+    statusLED[3].update(50, 50); // Strobe STS LED
     Serial.println(F(" === ERROR"));
 
-    // Display errors: Serial and Status LEDs
-    if (errorCode == ERR_NONE){
+    // Display errors: Serial and Status LEDs 
+    // TODO use extra bytes in canpacket to send these as well
+    if (errorCode == ERR_NONE)
+    {
       Serial.println(F("   *Error state, but no error code logged..."));
     }
-    if (errorCode & ERR_PRECHARGE_TOO_FAST) {
+    if (errorCode & ERR_PRECHARGE_TOO_FAST)
+    {
       Serial.println(F("   *Precharge too fast. Suspect wiring fault / chatter in shutdown circuit."));
       statusLED[0].on();
     }
-    if (errorCode & ERR_PRECHARGE_TOO_SLOW) {
+    if (errorCode & ERR_PRECHARGE_TOO_SLOW)
+    {
       Serial.println(F("   *Precharge too slow. Potential causes:\n   - Wiring fault\n   - Discharge is stuck-on\n   - Target precharge percent is too high"));
       statusLED[1].on();
     }
-    if (errorCode & ERR_STATE_UNDEFINED) {
+    if (errorCode & ERR_STATE_UNDEFINED)
+    {
       Serial.println(F("   *State not defined in The State Machine."));
     }
   }
-  delay(500);// WRITE_RESTART(0x5FA0004);
-
+  delay(500); // WRITE_RESTART(0x5FA0004);
 }
 
-
 // Loop through the array and call update.
-void updateStatusLeds() {
-  for (uint8_t i=0; i<(sizeof(statusLED)/sizeof(*statusLED)); i++){
+void updateStatusLeds()
+{
+  for (uint8_t i = 0; i < (sizeof(statusLED) / sizeof(*statusLED)); i++)
+  {
     statusLED[i].update();
   }
 }
-void statusLEDsOff() {
-  for (uint8_t i=0; i<(sizeof(statusLED)/sizeof(*statusLED)); i++){
+void statusLEDsOff()
+{
+  for (uint8_t i = 0; i < (sizeof(statusLED) / sizeof(*statusLED)); i++)
+  {
     statusLED[i].off();
   }
 }
-void updateStatusLeds(long ton, long toff) {
-  for (uint8_t i=0; i<(sizeof(statusLED)/sizeof(*statusLED)); i++){
+void updateStatusLeds(long ton, long toff)
+{
+  for (uint8_t i = 0; i < (sizeof(statusLED) / sizeof(*statusLED)); i++)
+  {
     statusLED[i].update(ton, toff);
   }
 }
-void canBroadcastStatus(){
-  CAN_message_t statusMsg; statusMsg.len=8; statusMsg.id=0x69;
-  int ACVforCan=ACV_Average.value();
-  int TSVforCan=TSV_Average.value();
+void canBroadcastStatus()
+{
+  CAN_message_t statusMsg;
+  statusMsg.len = 8;
+  statusMsg.id = 0x69;
+  int ACVforCan = ACV_Average.value();
+  int TSVforCan = TSV_Average.value();
   // Serial.println(ACVforCan);
   // Serial.println(ACV_Average.value());
-  uint8_t statusPacket[]={state,ACVforCan%100,ACVforCan/100,TSVforCan%100,TSVforCan/100,errorCode,0x55,0x55};
-  memcpy(statusMsg.buf,statusPacket,sizeof(statusMsg.buf));
+  uint8_t statusPacket[] = {state, ACVforCan % 100, ACVforCan / 100, TSVforCan % 100, TSVforCan / 100, errorCode, 0x55, 0x55};
+  memcpy(statusMsg.buf, statusPacket, sizeof(statusMsg.buf));
   CAN.write(statusMsg);
-  //Serial.println("Sent can packet");
-  // switch(currentState){
-  //   case STATE_STANDBY :
+  // Serial.println("Sent can packet");
+  //  switch(currentState){
+  //    case STATE_STANDBY :
 
   //     break;
 
@@ -341,7 +372,6 @@ void canBroadcastStatus(){
   //   case STATE_ONLINE :
   //     break;
 
-
   //   case STATE_ERROR :
   //   break;
   //   case STATE_UNDEFINED :
@@ -350,21 +380,22 @@ void canBroadcastStatus(){
 }
 void readBroadcast()
 {
-    CAN_message_t rxMsg;
-    if (CAN.read(rxMsg))
+  CAN_message_t rxMsg;
+  if (CAN.read(rxMsg))
+  {
+    if (rxMsg.id == ID_VCU)
     {
-      if(rxMsg.id == ID_VCU){
-        vcuSignal=true;
-        Serial.print("  ID: 0x");
-        Serial.print(rxMsg.id, HEX);
-        Serial.print(" DATA: ");
-        for (uint8_t i = 0; i < 8; i++)
-        {
-            Serial.print(rxMsg.buf[i],HEX);
-            Serial.print(" ");
-        }
-        Serial.println("");
+      vcuSignal = true;
+      Serial.print("  ID: 0x");
+      Serial.print(rxMsg.id, HEX);
+      Serial.print(" DATA: ");
+      for (uint8_t i = 0; i < 8; i++)
+      {
+        Serial.print(rxMsg.buf[i], HEX);
+        Serial.print(" ");
+      }
+      Serial.println("");
     }
-       // Serial.println("");
-    }
+    // Serial.println("");
+  }
 }
