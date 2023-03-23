@@ -348,18 +348,18 @@ void readBroadcast()
     CAN_message_t rxMsg;
     if (CAN.read(rxMsg))
     {
-      if(rxMsg.id == ID_VCU){
-        vcuSignal=true;
-        Serial.print("  ID: 0x");
-        Serial.print(rxMsg.id, HEX);
-        Serial.print(" DATA: ");
-        for (uint8_t i = 0; i < 8; i++)
-        {
-            Serial.print(rxMsg.buf[i],HEX);
-            Serial.print(" ");
-        }
-        Serial.println("");
-    }
+      // (rxMsg.id == ID_VCU)
+        // vcuSignal=true;
+        // Serial.print("  ID: 0x");
+        // Serial.print(rxMsg.id, HEX);
+        // Serial.print(" DATA: ");
+        // for (uint8_t i = 0; i < 8; i++)
+        // {
+        //     Serial.print(rxMsg.buf[i],HEX);
+        //     Serial.print(" ");
+        // }
+        // Serial.println("");
+    
        // Serial.println("");
     }
 }
