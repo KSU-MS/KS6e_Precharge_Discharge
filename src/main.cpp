@@ -50,13 +50,6 @@ MovingAverage TSV_Average(0, 0.1); // Tractive system Voltage
 MovingAverage ACV_Average(0, 0.1); // Accumulator (upstream of precharge resistor)
 MovingAverage SDC_Average(0, 0.5); // Shutdown Circuit
 
-
-
-float AccVolTest = ACV_Average.value();
-float TSVolTest = TSV_Average.value();
-
-
-
 STATEVAR state = STATE_STANDBY;
 STATEVAR lastState = STATE_UNDEFINED;
 int errorCode = ERR_NONE;
@@ -132,23 +125,6 @@ void loop() {
       errorCode |= ERR_STATE_UNDEFINED;
       errorState();
   }
-
-   const unsigned long samplePeriod = 10; // [ms] Period to measure voltages
-  static unsigned long lastSample = 0;
-  if (now > lastSample + samplePeriod){  // samplePeriod and movingAverage alpha value will affect moving average response.
-    lastSample = now;
-    ACV_Average.update(getAccuVoltage());
-    TSV_Average.update(getTsVoltage());
-  }
-  double acv = ACV_Average.value();
-  double tsv = TSV_Average.value();
-
-
-  Serial.print("ACC:");
-  Serial.println(acv);
-  Serial.print("TS:");
-  Serial.println(tsv);
-  delay(50);
   updateStatusLeds();
   readBroadcast();
 
