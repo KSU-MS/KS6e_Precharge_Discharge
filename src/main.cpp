@@ -44,7 +44,8 @@ Metro CanBroadcastTimer = Metro(50);
 // Edit to set Minum sutdown voltage bus
 const float MIN_SDC_VOLTAGE = 9.0; // [Volts]
 
-volatile bool vcuSignal = false;
+volatile bool vcuSignal=false;
+
 // Exponential Moving Average Filters
 MovingAverage TSV_Average(0, 0.1); // Tractive system Voltage
 MovingAverage ACV_Average(0, 0.1); // Accumulator (upstream of precharge resistor)
@@ -137,7 +138,6 @@ void loop()
     errorCode |= ERR_STATE_UNDEFINED;
     errorState();
   }
-
   updateStatusLeds();
   readBroadcast();
 }
@@ -392,16 +392,19 @@ void readBroadcast()
   {
     if (rxMsg.id == ID_VCU)
     {
-      vcuSignal = true;
-      Serial.print("  ID: 0x");
-      Serial.print(rxMsg.id, HEX);
-      Serial.print(" DATA: ");
-      for (uint8_t i = 0; i < 8; i++)
-      {
-        Serial.print(rxMsg.buf[i], HEX);
-        Serial.print(" ");
-      }
-      Serial.println("");
+      // (rxMsg.id == ID_VCU)
+        // vcuSignal=true;
+        // Serial.print("  ID: 0x");
+        // Serial.print(rxMsg.id, HEX);
+        // Serial.print(" DATA: ");
+        // for (uint8_t i = 0; i < 8; i++)
+        // {
+        //     Serial.print(rxMsg.buf[i],HEX);
+        //     Serial.print(" ");
+        // }
+        // Serial.println("");
+    
+       // Serial.println("");
     }
     // Serial.println("");
   }
