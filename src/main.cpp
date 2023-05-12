@@ -38,6 +38,7 @@
 #define ID_VCU 420
 #define NUM_TX_MAILBOXES 2
 #define NUM_RX_MAILBOXES 6
+#define RELIABLE 1 // Define this TRUE if the code has been successfully tested & pushed to MAIN branch
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> CAN;
 Metro CanBroadcastTimer = Metro(50);
 
@@ -364,7 +365,7 @@ void canBroadcastStatus()
   int TSVforCan = TSV_Average.value();
   // Serial.println(ACVforCan);
   // Serial.println(ACV_Average.value());
-  uint8_t statusPacket[] = {state, ACVforCan % 100, ACVforCan / 100, TSVforCan % 100, TSVforCan / 100, errorCode, 0x55, 0x55};
+  uint8_t statusPacket[] = {state, ACVforCan % 100, ACVforCan / 100, TSVforCan % 100, TSVforCan / 100, errorCode, 0x55, RELIABLE};
   memcpy(statusMsg.buf, statusPacket, sizeof(statusMsg.buf));
   CAN.write(statusMsg);
   // Serial.println("Sent can packet");
