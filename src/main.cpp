@@ -86,7 +86,7 @@ void setup()
   CAN.setMBFilter(MB1, ACCEPT_ALL);
   CAN.setMBFilter(MB2, ACCEPT_ALL);
   CAN.mailboxStatus();
-  pinMode(LED_BUILTIN, OUTPUT); // added for heart beat
+  // pinMode(LED_BUILTIN, OUTPUT); // added for heart beat
 }
 
 void monitorShutdownCircuit();
@@ -111,8 +111,8 @@ void loop()
     canBroadcastStatus();
   }
   //SDC_Average
-  Serial.println(getShutdownCircuitVoltage());
-  digitalWrite(LED_BUILTIN, HIGH);
+  // Serial.println(getShutdownCircuitVoltage());
+  // digitalWrite(LED_BUILTIN, HIGH);
   //Serial.println(F("I am AliveEEEE"));
   // The State Machine
   switch (state)
@@ -167,7 +167,7 @@ void standby()
     statusLEDsOff();
     //delay(500);
     statusLED[0].on();
-    digitalWrite(LED_BUILTIN, LOW);
+    // digitalWrite(LED_BUILTIN, LOW);
     Serial.println(F(" === STANDBY"));
     Serial.println(F("* Waiting for stable shutdown circuit"));
     epoch = millis(); // make sure to reset if we've circled back to standby
