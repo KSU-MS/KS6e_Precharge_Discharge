@@ -25,20 +25,13 @@
       transition: Check for near-zero TS voltages ensures full discharge before
       attempting a precharge.
 */
-<<<<<<< Updated upstream
+// #define BRING_UP
 
-#define BRING_UP
-
-=======
->>>>>>> Stashed changes
 #include "gpio.h"
 #include "measurements.h"
 #include "moving-average.h"
 #include "states.h"
-<<<<<<< Updated upstream
 #include "v-f-test.hpp"
-=======
->>>>>>> Stashed changes
 #include <Arduino.h>
 #include <FlexCAN_T4.h> //how can we make use of CAN here? maybe broadcast fault
 #include <Metro.h>
@@ -56,20 +49,10 @@ const float MIN_SDC_VOLTAGE = 9.0; // [Volts]
 
 volatile bool vcuSignal = false;
 
-<<<<<<< Updated upstream
-//// Exponential Moving Average Filters
-// Tractive system Voltage
-MovingAverage TSV_Average(0, 0.1);
-// Accumulator (upstream of precharge resistor)
-MovingAverage ACV_Average(0, 0.1);
-// Shutdown Circuit
-MovingAverage SDC_Average(0, 0.5);
-=======
 // Exponential Moving Average Filters
 MovingAverage TSV_Average(0, 0.1); // Tractive system Voltage
 MovingAverage ACV_Average(0, 0.1); // Accumulator +
 MovingAverage SDC_Average(0, 0.5); // Shutdown Circuit
->>>>>>> Stashed changes
 
 // STATEVAR state = STATE_STANDBY;
 // STATEVAR lastState = STATE_UNDEFINED;
@@ -121,14 +104,11 @@ void readBroadcast();
 
 // Main Loop
 void loop() {
-<<<<<<< Updated upstream
 #ifdef BRING_UP
   run_test();
 #endif
 
 #ifndef BRING_UP
-=======
->>>>>>> Stashed changes
   now = millis();
 
   // Always monitor Shutdown Circuit Voltage and react
@@ -140,10 +120,7 @@ void loop() {
   //  Serial.println(getShutdownCircuitVoltage());
   //  digitalWrite(LED_BUILTIN, HIGH);
   // Serial.println(F("I am AliveEEEE"));
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
   //  The State Machine
   switch (state) {
   case STATE_STANDBY:
@@ -225,22 +202,6 @@ void standby() {
 // Trip error if charge-time looks unusual
 void precharge() {
   // Look for "too fast" or "too slow" precharge, indicates wiring fault
-<<<<<<< Updated upstream
-  const float MIN_EXPECTED =
-      300; // [ms]. Set this to something reasonable after collecting normal
-           // precharge sequence data
-  const float MAX_EXPECTED =
-      1000; // [ms]. Set this to something reasonable after collecting normal
-            // precharge sequence data
-  // If a precharge is detected faster than this, an error is
-  // thrown - assumed wiring fault. This could also arrest oscillating or
-  // chattering AIRs, because the TS will retain some amount of precharge.
-  const float TARGET_PERCENT =
-      92; // TODO: Requires suitable value during commissioning (eg 95%)
-  const unsigned int SETTLING_TIME =
-      100; // [ms] Precharge amount must be over TARGET_PERCENT for this long
-           // before we consider precharge complete
-=======
   // [ms]. Set this to something reasonable after collecting normal precharge
   // sequence data
   const float MIN_EXPECTED = 300;
@@ -260,7 +221,6 @@ void precharge() {
   // consider precharge complete
   const unsigned int SETTLING_TIME = 100;
 
->>>>>>> Stashed changes
   static unsigned long epoch;
   static unsigned long tStartPre;
 
@@ -279,16 +239,10 @@ void precharge() {
   // Sample the voltages and update moving averages
   const unsigned long samplePeriod = 10; // [ms] Period to measure voltages
   static unsigned long lastSample = 0;
-<<<<<<< Updated upstream
-  if (now >
-      lastSample + samplePeriod) { // samplePeriod and movingAverage alpha value
-                                   // will affect moving average response.
-=======
 
   // samplePeriod and movingAverage alpha value will affect moving average
   // response.
   if (now > lastSample + samplePeriod) {
->>>>>>> Stashed changes
     lastSample = now;
     ACV_Average.update(getAccuVoltage());
     TSV_Average.update(getTsVoltage());
@@ -301,22 +255,10 @@ void precharge() {
   static unsigned long lastPrint = 0;
   if (now >= lastPrint + 100) {
     lastPrint = now;
-<<<<<<< Updated upstream
     sprintf(lineBuffer, "%5lums %4.1f%%  ACV:%5.1fV TSV:%5.1fV\n",
             now - tStartPre, prechargeProgress, ACV_Average.value(),
             TSV_Average.value());
     Serial.print(lineBuffer);
-=======
-    // sprintf(lineBuffer, "%5lums %4.1f%%  acv:%5.1fv tsv:%5.1fv\n",
-    //         now - tstartpre, prechargeprogress, acv_average.value(),
-    //         tsv_average.value());
-    // Serial.printf(lineBuffer);
-
-    Serial.printf("%5lums\t", (now - tStartPre));
-    Serial.printf("%4.1f%%\t", (prechargeProgress));
-    Serial.printf("acv:%5.1fv\t", (ACV_Average.value()));
-    Serial.printf("tsv:%5.1fv\n", (TSV_Average.value()));
->>>>>>> Stashed changes
   }
 
   // Check if precharge complete
